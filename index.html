@@ -20,14 +20,28 @@
     </div>
     <div id="title-right">
       <a id="btn-donate" href="#" class="donate-btn" title="Support this project">❤ Donate</a>
-      <button id="btn-sources" class="title-btn" title="Data sources">📋 Sources</button>
+      <button id="btn-sources" class="title-btn js-open-sources" title="Data sources">📋 Sources</button>
       <button id="theme-toggle" class="title-btn" title="Toggle light/dark mode">☀</button>
       <div id="title-disclaimer">⚠ Approximate data based on public reports</div>
+      <button id="hamburger-btn" class="title-btn" title="Open menu" aria-label="Open menu" aria-expanded="false">☰</button>
     </div>
   </div>
 
-  <!-- Filter panel -->
+  <!-- Filter panel (desktop) / slide-in drawer (mobile) -->
   <div id="filter-panel">
+
+    <!-- Mobile-only drawer header (hidden on desktop) -->
+    <div class="mobile-drawer-top">
+      <div class="mobile-drawer-header">
+        <span class="mobile-drawer-title">Israel Missile Map</span>
+        <button id="drawer-close" title="Close menu">&times;</button>
+      </div>
+      <div class="mobile-drawer-actions">
+        <a href="#" class="donate-btn">❤ Donate</a>
+        <button class="title-btn js-open-sources">📋 Sources</button>
+      </div>
+      <div class="mobile-disclaimer">⚠ Approximate data based on public reports</div>
+    </div>
 
     <!-- Search (always visible) -->
     <div id="search-wrap">
@@ -64,6 +78,9 @@
 
   </div>
 
+  <!-- Drawer backdrop (mobile only) -->
+  <div id="drawer-overlay"></div>
+
   <!-- Legend -->
   <div id="legend">
     <div class="legend-title">Alert Intensity</div>
@@ -87,7 +104,7 @@
     <div id="stats-left">
       <span>Total alerts:&nbsp;<strong id="total-alerts">–</strong></span>
       <span class="stats-sep">|</span>
-      <span>Cities affected:&nbsp;<strong id="total-cities">–</strong></span>
+      <span>Cities:&nbsp;<strong id="total-cities">–</strong></span>
       <span class="stats-sep">|</span>
       <span id="active-filter-label">Loading…</span>
     </div>

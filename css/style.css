@@ -847,3 +847,151 @@ body.light-mode .region-label {
 
 /* ===== UTILITY ===== */
 .hidden { display: none !important; }
+
+/* ===== HAMBURGER BUTTON (shown only on mobile) ===== */
+#hamburger-btn {
+  display: none;
+  font-size: 18px;
+  padding: 5px 9px;
+}
+
+/* ===== DRAWER OVERLAY ===== */
+#drawer-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1199;
+  background: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+}
+#drawer-overlay.visible { display: block; }
+
+/* ===== MOBILE DRAWER TOP (hidden on desktop) ===== */
+.mobile-drawer-top { display: none; }
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 640px) {
+
+  /* ---- Root vars ---- */
+  :root {
+    --header-h:   50px;
+    --statsbar-h: 30px;
+  }
+
+  /* ---- Title bar ---- */
+  #purpose-line     { display: none; }
+  #title-disclaimer { display: none; }
+  #btn-sources      { display: none; }
+  #btn-donate       { display: none; }
+  #hamburger-btn    { display: inline-flex; }
+  #title-left h1    { font-size: 14px; }
+
+  /* ---- Filter panel → slide-in drawer ---- */
+  #filter-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(300px, 88vw);
+    max-width: none;
+    max-height: 100dvh;
+    min-width: 0;
+    border-radius: 0 10px 10px 0;
+    z-index: 1200;
+    overflow-y: auto;
+    transform: translateX(calc(-100% - 20px));
+    transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 28px rgba(0, 0, 0, 0.5);
+  }
+  #filter-panel.drawer-open {
+    transform: translateX(0);
+  }
+
+  /* ---- Mobile drawer top section (full-bleed header) ---- */
+  .mobile-drawer-top {
+    display: block;
+    /* Bleed out to the panel edges, overriding the 14px panel padding */
+    margin: -12px -14px 12px;
+    padding: 14px 14px 12px;
+    border-bottom: 1px solid var(--border2);
+  }
+  .mobile-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .mobile-drawer-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-bright);
+    letter-spacing: 0.2px;
+  }
+  #drawer-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+    transition: color 0.12s;
+  }
+  #drawer-close:hover { color: var(--text-bright); }
+
+  .mobile-drawer-actions {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .mobile-drawer-actions .donate-btn,
+  .mobile-drawer-actions .title-btn {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .mobile-disclaimer {
+    font-size: 10.5px;
+    color: var(--warning);
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 4px;
+    padding: 5px 8px;
+    line-height: 1.4;
+  }
+
+  /* ---- Legend: hide on mobile ---- */
+  #legend { display: none; }
+
+  /* ---- Info panel → bottom sheet ---- */
+  #info-panel {
+    top: auto;
+    bottom: var(--statsbar-h);
+    right: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    border-radius: 14px 14px 0 0;
+    max-height: 56vh;
+    box-shadow: 0 -4px 28px rgba(0, 0, 0, 0.45);
+  }
+
+  /* ---- Stats bar: show only essentials ---- */
+  #stats-right { display: none; }
+  #stats-left  { gap: 0; font-size: 11px; }
+  /* Shorten label: "Cities affected" → "Cities" already done in HTML */
+
+  /* ---- Leaflet controls: shift above stats bar ---- */
+  .leaflet-bottom {
+    bottom: calc(var(--statsbar-h) + 4px) !important;
+  }
+
+  /* ---- Search dropdown: full width within panel ---- */
+  #search-results { max-height: 180px; }
+
+  /* ---- Tooltip: disable on touch (marker click shows panel instead) ---- */
+  .leaflet-tooltip { display: none !important; }
+}

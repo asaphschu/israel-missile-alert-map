@@ -110,7 +110,9 @@
       e.stopPropagation(); UI.hideInfoPanel();
     });
     document.getElementById('theme-toggle').addEventListener('click', handleThemeToggle);
-    document.getElementById('btn-sources').addEventListener('click', () => UI.showSourcesModal());
+    document.querySelectorAll('.js-open-sources').forEach(el =>
+      el.addEventListener('click', () => UI.showSourcesModal())
+    );
     document.getElementById('modal-close-btn').addEventListener('click', () => UI.hideSourcesModal());
     document.getElementById('sources-modal').addEventListener('click', e => {
       if (e.target === document.getElementById('sources-modal')) UI.hideSourcesModal();
@@ -125,6 +127,32 @@
       const collapsed = body.classList.toggle('lb-collapsed');
       lbToggle.classList.toggle('collapsed', collapsed);
       lbToggle.textContent = collapsed ? '▸' : '▾';
+    });
+
+    // ---- Mobile drawer ----
+    const hamburgerBtn  = document.getElementById('hamburger-btn');
+    const drawerOverlay = document.getElementById('drawer-overlay');
+    const filterPanel   = document.getElementById('filter-panel');
+    const drawerClose   = document.getElementById('drawer-close');
+
+    function openDrawer() {
+      filterPanel.classList.add('drawer-open');
+      drawerOverlay.classList.add('visible');
+      hamburgerBtn.setAttribute('aria-expanded', 'true');
+    }
+    function closeDrawer() {
+      filterPanel.classList.remove('drawer-open');
+      drawerOverlay.classList.remove('visible');
+      hamburgerBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    hamburgerBtn.addEventListener('click', openDrawer);
+    drawerClose.addEventListener('click', closeDrawer);
+    drawerOverlay.addEventListener('click', closeDrawer);
+
+    // Close drawer on search-select (mobile)
+    map.on('movestart', () => {
+      if (window.innerWidth <= 640) closeDrawer();
     });
 
     // ---- Footer clock ----
