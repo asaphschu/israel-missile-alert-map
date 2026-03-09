@@ -29,26 +29,14 @@
   <!-- Filter panel -->
   <div id="filter-panel">
 
-    <!-- View mode toggle — Today (default) vs All time -->
-    <div class="view-tabs">
-      <button id="tab-today"   class="view-tab active">Today</button>
-      <button id="tab-alltime" class="view-tab">All time</button>
-    </div>
-
     <!-- Search (always visible) -->
     <div id="search-wrap">
       <input id="search-input" type="text" placeholder="🔍 Search city…" autocomplete="off">
       <ul id="search-results" class="hidden"></ul>
     </div>
 
-    <!-- TODAY MODE: live status chip -->
-    <div id="today-status" class="hidden">
-      <span class="live-dot"></span>
-      <span id="today-msg">Connecting…</span>
-    </div>
-
-    <!-- ALL TIME MODE: episode filters -->
-    <div id="alltime-filters" class="hidden">
+    <!-- Episode filters -->
+    <div id="alltime-filters">
       <div class="panel-title">Filter by Conflict</div>
       <div id="episode-checkboxes"></div>
       <div class="filter-actions">
@@ -116,9 +104,9 @@
       <div class="modal-title">Data Sources</div>
       <button class="modal-close" id="modal-close-btn" title="Close">&times;</button>
       <div class="source-item">
-        <div class="source-name">Israel Home Front Command (Pikud HaOref)</div>
+        <div class="source-name">2026 Iran War (Feb 28 – present)</div>
         <div class="source-desc">
-          <a href="https://www.oref.org.il" target="_blank">oref.org.il</a> — official real-time alert system. Today mode polls their API via a server-side proxy to add live data.
+          Times of Israel, Haaretz, Al Jazeera, ACLED, Alma Research — joint US-Israel strikes on Iran beginning Feb 28, 2026 triggered Iranian ballistic missile and drone retaliation against Israel. 525+ ballistic missiles fired at Israel as of early March 2026.
         </div>
       </div>
       <div class="source-item">
@@ -159,7 +147,6 @@
   <script src="js/data.js"></script>
   <script src="data/flightpaths.js"></script>
   <script src="js/ui.js"></script>
-  <script src="js/realtime.js"></script>
   <script src="js/app.js"></script>
 
 </body>

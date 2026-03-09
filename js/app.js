@@ -1,6 +1,6 @@
 // js/app.js
 // Map initialisation, layer management, filter logic, theme toggle,
-// flight paths, search, leaderboard and Today / All-time view switching.
+// flight paths, search, leaderboard and stats.
 
 (function () {
   'use strict';
@@ -25,7 +25,6 @@
   };
 
   // ─── VISITOR COUNT ENDPOINT ──────────────────────────────────────────────
-  // Uses the Vercel Edge Function when deployed; disabled on localhost.
   const IS_LOCAL    = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   const VISITOR_URL = IS_LOCAL ? null : '/api/visitors';
   // ─────────────────────────────────────────────────────────────────────────
@@ -40,31 +39,22 @@
   let cityEntries      = [];
   let _footerClockId   = null;
   let _visitorPingId   = null;
-  let _visitorId       = null;   // unique session ID for visitor tracking
+  let _visitorId       = null;
 
   const state = {
     activeEpisodes: new Set(),
     markerClicked:  false,
     showPaths:      true,
-    theme:          localStorage.getItem('mapTheme') || 'dark',
-    viewMode:       'today',    // 'today' | 'alltime'
-    todayData:      {}          // cityId → accumulated alert count (today view)
+    theme:          localStorage.getItem('mapTheme') || 'dark'
   };
 
-  // ===== UNIFIED COUNT ACCESSORS =====
-  // All map-rendering functions call these so switching views is transparent.
+  // ===== COUNT ACCESSORS =====
 
   function getCount(city) {
-    return state.viewMode === 'today'
-      ? (state.todayData[city.id] || 0)
-      : Data.getAlertCount(city, state.activeEpisodes);
+    return Data.getAlertCount(city, state.activeEpisodes);
   }
 
   function getMaxCount() {
-    if (state.viewMode === 'today') {
-      const vals = Object.values(state.todayData);
-      return vals.length ? Math.max(...vals) : 1;
-    }
     return Data.getMaxCount(window.ALERT_DATA.cities, state.activeEpisodes);
   }
 
@@ -73,9 +63,9 @@
     const data = window.ALERT_DATA;
     if (!data) { console.error('ALERT_DATA not loaded'); return; }
 
-    // Default all-time selection: most recent Iran episode that has data
-    const iranOrder  = ['iran_2025', 'iran_oct_2024', 'iran_apr_2024'];
-    const defaultEp  = iranOrder.find(ep => data.cities.some(c => (c.episodes[ep] || 0) > 0)) || 'iran_oct_2024';
+    // Default: most recent Iran episode that has data
+    const iranOrder = ['iran_2026', 'iran_2025', 'iran_oct_2024', 'iran_apr_2024'];
+    const defaultEp = iranOrder.find(ep => data.cities.some(c => (c.episodes[ep] || 0) > 0)) || 'iran_2026';
     state.activeEpisodes.add(defaultEp);
 
     // ---- Map ----
@@ -95,7 +85,7 @@
 
     canvasRenderer = L.canvas({ padding: 0.5 });
 
-    // ---- Layers (built with today data = empty initially) ----
+    // ---- Layers ----
     buildHeatLayer();
     buildMarkerLayer();
     buildFlightPaths();
@@ -137,15 +127,6 @@
       lbToggle.textContent = collapsed ? '▸' : '▾';
     });
 
-    // View tabs
-    document.getElementById('tab-today')  .addEventListener('click', () => switchView('today'));
-    document.getElementById('tab-alltime').addEventListener('click', () => switchView('alltime'));
-
-    // ---- Initialise in Today mode ----
-    Realtime.init(map, data.cities);
-    applyViewUI('today');
-    startTodayMode();
-
     // ---- Footer clock ----
     startFooterClock();
 
@@ -153,101 +134,6 @@
     _visitorId = 'v' + Math.random().toString(36).slice(2, 10) + Date.now();
     pingVisitors();
     _visitorPingId = setInterval(pingVisitors, 30000);
-  }
-
-  // ===== VIEW SWITCHING =====
-
-  function switchView(mode) {
-    if (state.viewMode === mode) return;
-    state.viewMode = mode;
-
-    if (mode === 'today') {
-      stopAllTimeMode();
-      applyViewUI('today');
-      startTodayMode();
-    } else {
-      stopTodayMode();
-      applyViewUI('alltime');
-      startAllTimeMode();
-    }
-  }
-
-  /** Show/hide the correct panel sections and update tab styling. */
-  function applyViewUI(mode) {
-    document.getElementById('tab-today')   .classList.toggle('active', mode === 'today');
-    document.getElementById('tab-alltime') .classList.toggle('active', mode === 'alltime');
-    document.getElementById('today-status').classList.toggle('hidden', mode !== 'today');
-    document.getElementById('alltime-filters').classList.toggle('hidden', mode !== 'alltime');
-
-    const lb = document.getElementById('leaderboard-title');
-    lb.textContent = mode === 'today' ? '🏆 Today\'s Most Targeted' : '🏆 Most Targeted';
-  }
-
-  // ===== TODAY MODE =====
-
-  async function startTodayMode() {
-    setTodayMsg('Connecting…', false);
-    updateStats();
-    updateLeaderboard();
-
-    // Show Iran 2025 flight paths in today mode
-    const savedEpisodes = state.activeEpisodes;
-    state.activeEpisodes = new Set(['iran_2025']);
-    buildFlightPaths();
-    state.activeEpisodes = savedEpisodes;
-
-    const ok = await Realtime.toggle(map, onTodayPoll, onNewTodayAlert);
-    if (ok) {
-      setTodayMsg('Live — polling every 10 s', true);
-    } else {
-      setTodayMsg('API unavailable — deploy proxy to enable', false);
-    }
-  }
-
-  function stopTodayMode() {
-    Realtime.stop();
-    // Keep todayData so it persists if user switches back
-  }
-
-  function onTodayPoll(activeCount) {
-    if (activeCount > 0) {
-      setTodayMsg(`${activeCount} active alert${activeCount === 1 ? '' : 's'} right now`, true);
-    } else {
-      setTodayMsg('No active alerts right now', true);
-    }
-    updateStats();
-    updateLeaderboard();
-  }
-
-  function onNewTodayAlert(city) {
-    // Accumulate: each new alert event increments the city's today count
-    state.todayData[city.id] = (state.todayData[city.id] || 0) + 1;
-    updateLayers();
-    updateStats();
-    updateLeaderboard();
-  }
-
-  function setTodayMsg(msg, isLive) {
-    const el = document.getElementById('today-msg');
-    const wrap = document.getElementById('today-status');
-    if (el)   el.textContent = msg;
-    if (wrap) {
-      wrap.classList.toggle('ok',   isLive);
-      wrap.classList.toggle('idle', !isLive);
-    }
-  }
-
-  // ===== ALL TIME MODE =====
-
-  function startAllTimeMode() {
-    updateLayers();
-    updateStats();
-    updateLeaderboard();
-    buildFlightPaths();
-  }
-
-  function stopAllTimeMode() {
-    // Nothing to stop — just a static data view
   }
 
   // ===== THEME =====
@@ -420,7 +306,7 @@
         fillColor: Data.getColor(normalized),
         color: 'rgba(255,255,255,0.5)', weight: 1,
         opacity: 0.9, fillOpacity: 0.8,
-        interactive: true   // restore after filter/view change
+        interactive: true
       });
       marker.bindTooltip(UI.buildTooltip(city, count), { sticky: true, direction: 'top', offset: [0, -4] });
       marker.off('click');
@@ -448,26 +334,14 @@
       if (cnt > 0) { totalAlerts += cnt; citiesCount++; }
     });
 
-    let label;
-    if (state.viewMode === 'today') {
-      const total = Object.keys(state.todayData).length;
-      label = total > 0 ? 'Today (since page load)' : 'Today — waiting for data';
-    } else {
-      const eps = state.activeEpisodes;
-      if (eps.size === 0) label = 'No episodes selected';
-      else if (eps.size === Object.keys(meta.episodes).length) label = 'All episodes combined';
-      else label = 'Showing: ' + [...eps].map(ep => meta.episodes[ep]?.label || ep).join(', ');
-    }
-
-    UI.updateStats(totalAlerts, citiesCount, state.activeEpisodes, meta.episodes, label);
+    UI.updateStats(totalAlerts, citiesCount, state.activeEpisodes, meta.episodes);
   }
 
   // ===== LEADERBOARD =====
 
   function updateLeaderboard() {
     const { cities } = window.ALERT_DATA;
-    const overrides = state.viewMode === 'today' ? state.todayData : null;
-    UI.updateLeaderboard(cities, state.activeEpisodes, overrides);
+    UI.updateLeaderboard(cities, state.activeEpisodes);
   }
 
   // ===== SEARCH =====
@@ -491,16 +365,14 @@
     updateFlightPathsVisibility();
   }
 
-  // ===== FILTER CHANGE (All-time mode) =====
+  // ===== FILTER CHANGE =====
 
   function handleFilterChange(newActiveEpisodes) {
     state.activeEpisodes = newActiveEpisodes;
-    if (state.viewMode === 'alltime') {
-      updateLayers();
-      updateStats();
-      updateLeaderboard();
-      buildFlightPaths();
-    }
+    updateLayers();
+    updateStats();
+    updateLeaderboard();
+    buildFlightPaths();
     UI.hideInfoPanel();
   }
 
@@ -527,7 +399,7 @@
       const json = await res.json();
       const el   = document.getElementById('visitors-count');
       if (el && typeof json.count === 'number') el.textContent = json.count;
-    } catch (_) { /* silent — no visitor URL configured yet */ }
+    } catch (_) { /* silent */ }
   }
 
   // ===== BOOT =====

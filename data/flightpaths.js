@@ -5,6 +5,16 @@
 
 window.FLIGHT_PATHS = [
   {
+    episode:    'iran_2026',
+    label:      'Iran',
+    from:       [33.5, 50.0],     // Central Iran
+    color:      '#ff4500',
+    arcHeight:  3.5,
+    targets:    ['tel-aviv-center', 'tel-aviv-north', 'tel-aviv-east', 'tel-aviv-south',
+                 'petah-tikva', 'bnei-brak', 'ramat-gan', 'givatayim', 'lod', 'ramle',
+                 'jerusalem', 'bet-shemesh', 'haifa', 'beer-sheva', 'ashdod', 'rishon-lezion']
+  },
+  {
     episode:    'iran_2025',
     label:      'Iran',
     from:       [33.5, 50.0],     // Central Iran (approx. between Isfahan and Arak)
