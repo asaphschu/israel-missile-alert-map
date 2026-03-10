@@ -848,6 +848,73 @@ body.light-mode .region-label {
 /* ===== UTILITY ===== */
 .hidden { display: none !important; }
 
+/* ===== LEAFLET BOTTOM CONTROLS — keep above stats bar ===== */
+.leaflet-bottom.leaflet-right,
+.leaflet-bottom.leaflet-left {
+  bottom: calc(var(--statsbar-h) + 4px) !important;
+}
+
+/* ===== SCALE CONTROL ===== */
+.leaflet-control-scale-line {
+  background: var(--statsbar-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text-muted) !important;
+  font-size: 10px !important;
+  padding: 1px 6px !important;
+  border-radius: 0 0 3px 3px !important;
+}
+
+/* ===== DISTANCE PANEL ===== */
+#distance-panel {
+  margin-top: 10px;
+  border-top: 1px solid var(--border2);
+  padding-top: 10px;
+  padding-bottom: 4px;
+}
+
+.distance-subtitle {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: -6px;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+.distance-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 2px;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+.distance-row:hover { background: var(--accent-bg); }
+
+.dist-flag  { font-size: 15px; flex-shrink: 0; line-height: 1; }
+.dist-label { flex: 1; font-size: 12px; color: var(--text-secondary); }
+.dist-km {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  min-width: 72px;
+  text-align: right;
+}
+.dist-bar-wrap {
+  width: 60px;
+  height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.dist-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
 /* ===== HAMBURGER BUTTON (shown only on mobile) ===== */
 #hamburger-btn {
   display: none;

@@ -75,6 +75,7 @@
       zoomControl: false
     });
     L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
 
     if (state.theme === 'light') document.body.classList.add('light-mode');
     updateThemeIcon();
@@ -97,6 +98,7 @@
     UI.buildSearch(data.cities, handleSearchSelect);
     updateStats();
     updateLeaderboard();
+    updateDistancePanel();
 
     // ---- Events ----
     map.on('zoomend', handleZoomEnd);
@@ -401,6 +403,7 @@
     updateStats();
     updateLeaderboard();
     buildFlightPaths();
+    updateDistancePanel();
     UI.hideInfoPanel();
   }
 
@@ -428,6 +431,63 @@
       const el   = document.getElementById('visitors-count');
       if (el && typeof json.count === 'number') el.textContent = json.count;
     } catch (_) { /* silent */ }
+  }
+
+  // ===== HAVERSINE DISTANCE =====
+
+  function haversineKm(lat1, lon1, lat2, lon2) {
+    const R    = 6371;
+    const toR  = d => d * Math.PI / 180;
+    const dLat = toR(lat2 - lat1);
+    const dLon = toR(lon2 - lon1);
+    const a    = Math.sin(dLat / 2) ** 2 +
+                 Math.cos(toR(lat1)) * Math.cos(toR(lat2)) * Math.sin(dLon / 2) ** 2;
+    return Math.round(R * 2 * Math.asin(Math.sqrt(a)) / 10) * 10; // round to nearest 10 km
+  }
+
+  // ===== LAUNCH DISTANCES PANEL =====
+
+  const ISRAEL_REF   = [32.05, 34.78]; // Tel Aviv (reference target)
+  const LAUNCH_FLAGS = { 'Iran': '🇮🇷', 'Lebanon': '🇱🇧', 'Gaza': '🇵🇸', 'Yemen': '🇾🇪' };
+
+  function updateDistancePanel() {
+    const container = document.getElementById('distance-rows');
+    const panel     = document.getElementById('distance-panel');
+    if (!container || !panel || !window.FLIGHT_PATHS) return;
+
+    // Collect unique launch origins for active episodes
+    const seen = new Set();
+    const rows = [];
+    window.FLIGHT_PATHS.forEach(fp => {
+      if (!state.activeEpisodes.has(fp.episode)) return;
+      const key = fp.from.join(',');
+      if (seen.has(key)) return;
+      seen.add(key);
+      rows.push({
+        label: fp.label,
+        flag:  LAUNCH_FLAGS[fp.label] || '📍',
+        color: fp.color,
+        km:    haversineKm(fp.from[0], fp.from[1], ISRAEL_REF[0], ISRAEL_REF[1])
+      });
+    });
+
+    if (rows.length === 0) { panel.style.display = 'none'; return; }
+    panel.style.display = '';
+
+    // Sort farthest first
+    rows.sort((a, b) => b.km - a.km);
+    const maxKm = rows[0].km;
+
+    container.innerHTML = rows.map(r => `
+      <div class="distance-row">
+        <span class="dist-flag">${r.flag}</span>
+        <span class="dist-label" style="color:${r.color}">${r.label}</span>
+        <div class="dist-bar-wrap">
+          <div class="dist-bar-fill" style="width:${Math.round(r.km / maxKm * 100)}%;background:${r.color}"></div>
+        </div>
+        <span class="dist-km">≈ ${r.km.toLocaleString()} km</span>
+      </div>
+    `).join('');
   }
 
   // ===== BOOT =====
